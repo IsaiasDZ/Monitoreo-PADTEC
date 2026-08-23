@@ -1,64 +1,126 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Mi Programa</title>
-
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoreo PADTEC · Ruta Fibra Óptica</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
+<div class="page">
 
-    <aside>
+  <header class="head">
+    <div class="head__mark">PT</div>
+    <div class="head__id">
+      <div class="head__title">Monitoreo PADTEC</div>
+      <div class="head__sub">Ruta de fibra óptica · <b>Working / Protection</b> por EOA</div>
+    </div>
 
-        <h2>Mi Sistema</h2>
+    <div class="head__divider"></div>
 
-        <button>Dashboard</button>
+    <div class="head__stats">
+      <span class="stat"><span class="sw sw--good"></span>Nominal: <b id="cGood">0</b></span>
+      <span class="stat"><span class="sw sw--warn"></span>Advertencia: <b id="cWarn">0</b></span>
+      <span class="stat"><span class="sw sw--crit"></span>Crítico: <b id="cCrit">0</b></span>
+    </div>
 
-        <button>Clientes</button>
+    <div class="head__nav">
+      <span class="head__badge-mode" id="modeBadge" data-mode="live">API REAL</span>
+      <a class="head__link" href="monitor.html">Pantalla externa →</a>
+    </div>
+  </header>
 
-        <button>Reportes</button>
+  <nav class="trail" id="trail"></nav>
 
-        <button>Configuración</button>
+  <main class="grid" id="grid"></main>
 
-    </aside>
+  <details class="admin">
+    <summary>Administración · crear / eliminar tramos</summary>
+    <div class="admin__body">
+      <div class="admin__list" id="adminList"></div>
 
-    <main>
+      <form class="admin__form" id="adminForm">
+        <label>Título del tramo
+          <input type="text" name="title" placeholder="NODO A ⟷ NODO B" required>
+        </label>
+        <label>Km
+          <input type="number" step="0.1" name="km" placeholder="12.0" required>
+        </label>
+        <label>Umbral advertencia (dBm)
+          <input type="number" step="0.1" name="warning_at" value="-18" required>
+        </label>
+        <label>Umbral crítico (dBm)
+          <input type="number" step="0.1" name="critical_at" value="-23" required>
+        </label>
+        <button type="submit">+ Agregar tramo</button>
+      </form>
+    </div>
+  </details>
 
-        <h1>Dashboard</h1>
+  <footer class="foot">
+    <span id="footUpdated">PADTEC · esperando primer sondeo…</span>
+    <div class="foot__legend">
+      <span><i style="background:var(--good)"></i>Nominal</span>
+      <span><i style="background:var(--warn)"></i>Advertencia</span>
+      <span><i style="background:var(--crit)"></i>Crítico</span>
+      <span><i style="background:var(--working)"></i>Working</span>
+      <span><i style="background:var(--protection)"></i>Protection</span>
+    </div>
+  </footer>
+</div>
 
-        <div class="card">
+<!-- ============ MODAL: editar EOA (Working/Protection) de un sitio ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal__head">
+      <div>
+        <div class="modal__title" id="modalTitle">Editar EOA</div>
+        <div class="modal__sub" id="modalSub"></div>
+      </div>
+      <button class="modal__close" id="modalClose">✕</button>
+    </div>
 
-            <h2>Prueba Python</h2>
+    <form id="modalForm" style="display:flex; flex-direction:column; gap:12px;">
+      <input type="hidden" id="fSegmentId">
+      <input type="hidden" id="fSiteKey">
 
-            <input
-                id="nombre"
-                type="text"
-                placeholder="Escribe tu nombre"
-            >
-
-            <button onclick="saludar()">
-                Enviar
-            </button>
-
-            <p id="resultado"></p>
-
+      <div class="modal__path">
+        <div class="modal__path-title" data-path="working">● WORKING</div>
+        <div class="modal__row2">
+          <div class="modal__field">
+            <label for="wCardId">Card ID</label>
+            <input type="text" id="wCardId" placeholder="2538-78" required>
+          </div>
+          <div class="modal__field">
+            <label for="wStageId">Stage</label>
+            <input type="number" id="wStageId" value="0" required>
+          </div>
         </div>
+      </div>
 
-    </main>
+      <div class="modal__path">
+        <div class="modal__path-title" data-path="protection">● PROTECTION</div>
+        <div class="modal__row2">
+          <div class="modal__field">
+            <label for="pCardId">Card ID</label>
+            <input type="text" id="pCardId" placeholder="2538-304" required>
+          </div>
+          <div class="modal__field">
+            <label for="pStageId">Stage</label>
+            <input type="number" id="pStageId" value="0" required>
+          </div>
+        </div>
+      </div>
 
-    <script src="js/app.js"></script>
+      <div class="modal__actions">
+        <span class="modal__status" id="modalStatus"></span>
+        <button type="button" class="btn" id="modalCancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
+<script src="js/app.js"></script>
 </body>
-
 </html>

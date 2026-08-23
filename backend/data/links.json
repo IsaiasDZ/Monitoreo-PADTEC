@@ -1,0 +1,134 @@
+[
+  {
+    "id": 1,
+    "title": "NODO A",
+    "km": 25.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Sitio A",
+      "working": {
+        "card_id": "2389-2538",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2538-2538",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Sitio B",
+      "working": {
+        "card_id": "0000-002",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-003",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 2,
+    "title": "Nodo A Nodo C",
+    "km": 23.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Sitio A",
+      "working": {
+        "card_id": "0000-000",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-001",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Sitio B",
+      "working": {
+        "card_id": "0000-002",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-003",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 3,
+    "title": "San Pedro Sula --- Puerto Cortes",
+    "km": 17.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Sitio A",
+      "working": {
+        "card_id": "0000-000",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-001",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Sitio B",
+      "working": {
+        "card_id": "0000-002",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-003",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 4,
+    "title": "Puerto Barrios - Puerto Cortes",
+    "km": 32.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Sitio A",
+      "working": {
+        "card_id": "0000-000",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-001",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Sitio B",
+      "working": {
+        "card_id": "0000-002",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "0000-003",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  }
+]
