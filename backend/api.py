@@ -18,8 +18,14 @@ class EOAEndpoint(BaseModel):
 
 
 class SiteEdit(BaseModel):
+    name: str
+    title: str | None = None
     working: EOAEndpoint
     protection: EOAEndpoint
+
+
+class StageEdit(BaseModel):
+    stage_id: int = Field(..., ge=0, le=1)
 
 
 class SiteConfig(BaseModel):
@@ -63,6 +69,26 @@ def list_links():
     return store.get_all()
 
 
+@router.get("/config/export")
+def export_config():
+    """Exporta todos los parametros editables del dashboard."""
+    return {"version": 1, "links": store.get_all()}
+
+
+@router.put("/config/import")
+def import_config(payload: dict):
+    """Reemplaza la configuracion editable con un export valido."""
+    links = payload.get("links") if isinstance(payload, dict) else None
+    if not isinstance(links, list):
+        raise HTTPException(400, "El archivo no contiene una lista 'links' valida")
+    try:
+        store.replace_all(links)
+    except (TypeError, KeyError, ValueError) as exc:
+        raise HTTPException(400, f"Configuracion invalida: {exc}") from exc
+    monitor.poll_now()
+    return {"version": 1, "links": store.get_all()}
+
+
 @router.get("/links/{segment_id}")
 def get_link(segment_id: int):
     seg = store.get_one(segment_id)
@@ -99,6 +125,28 @@ def update_site(segment_id: int, site_key: Literal["site_a", "site_b"], payload:
         raise HTTPException(404, "Tramo o sitio no encontrado")
     monitor.poll_now()
     return updated
+
+
+@router.patch("/links/{segment_id}/site/{site_key}/stage")
+def update_stage(segment_id: int, site_key: Literal["site_a", "site_b"], payload: StageEdit):
+    """Persiste el stage elegido sin lanzar un sondeo adicional."""
+    updated = store.update_site_stage(segment_id, site_key, payload.stage_id)
+    if not updated:
+        raise HTTPException(404, "Tramo o sitio no encontrado")
+    return updated
+
+
+@router.get("/cards/{card_id}")
+def get_card_detail(card_id: str, stage_id: int = 0):
+    """Devuelve los payloads completos de tarjeta y stage de PADTEC."""
+    if not card_id or card_id.startswith("0000-"):
+        raise HTTPException(400, "Debe indicar un card_id real")
+    try:
+        card = monitor.client.get_card(card_id)
+        stage = monitor.client.get_stage(card_id, stage_id)
+        return {"card": card, "stage": stage, "stage_id": stage_id}
+    except Exception as exc:
+        raise HTTPException(502, f"No fue posible consultar la tarjeta PADTEC: {exc}") from exc
 
 
 @router.delete("/links/{segment_id}", status_code=204)

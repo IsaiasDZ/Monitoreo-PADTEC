@@ -1,98 +1,32 @@
 [
   {
-    "id": 1,
-    "title": "NODO A",
-    "km": 25.0,
-    "warning_at": -18.0,
-    "critical_at": -23.0,
-    "site_a": {
-      "name": "Sitio A",
-      "working": {
-        "card_id": "2389-2538",
-        "stage_id": 0,
-        "label": "W"
-      },
-      "protection": {
-        "card_id": "2538-2538",
-        "stage_id": 0,
-        "label": "P"
-      }
-    },
-    "site_b": {
-      "name": "Sitio B",
-      "working": {
-        "card_id": "0000-002",
-        "stage_id": 0,
-        "label": "W"
-      },
-      "protection": {
-        "card_id": "0000-003",
-        "stage_id": 0,
-        "label": "P"
-      }
-    }
-  },
-  {
-    "id": 2,
-    "title": "Nodo A Nodo C",
-    "km": 23.0,
-    "warning_at": -18.0,
-    "critical_at": -23.0,
-    "site_a": {
-      "name": "Sitio A",
-      "working": {
-        "card_id": "0000-000",
-        "stage_id": 0,
-        "label": "W"
-      },
-      "protection": {
-        "card_id": "0000-001",
-        "stage_id": 0,
-        "label": "P"
-      }
-    },
-    "site_b": {
-      "name": "Sitio B",
-      "working": {
-        "card_id": "0000-002",
-        "stage_id": 0,
-        "label": "W"
-      },
-      "protection": {
-        "card_id": "0000-003",
-        "stage_id": 0,
-        "label": "P"
-      }
-    }
-  },
-  {
     "id": 3,
     "title": "San Pedro Sula --- Puerto Cortes",
     "km": 17.0,
     "warning_at": -18.0,
     "critical_at": -23.0,
     "site_a": {
-      "name": "Sitio A",
+      "name": "Puerto Barrios",
       "working": {
-        "card_id": "0000-000",
+        "card_id": "2538-78",
         "stage_id": 0,
         "label": "W"
       },
       "protection": {
-        "card_id": "0000-001",
+        "card_id": "2538-304",
         "stage_id": 0,
         "label": "P"
       }
     },
     "site_b": {
-      "name": "Sitio B",
+      "name": "Puerto Cortes",
       "working": {
-        "card_id": "0000-002",
+        "card_id": "2538-81",
         "stage_id": 0,
         "label": "W"
       },
       "protection": {
-        "card_id": "0000-003",
+        "card_id": "2538-82",
         "stage_id": 0,
         "label": "P"
       }
@@ -100,32 +34,65 @@
   },
   {
     "id": 4,
-    "title": "Puerto Barrios - Puerto Cortes",
+    "title": "Puerto Cortes - SPS",
     "km": 32.0,
     "warning_at": -18.0,
     "critical_at": -23.0,
     "site_a": {
-      "name": "Sitio A",
+      "name": "Puerto Cortes",
       "working": {
-        "card_id": "0000-000",
+        "card_id": "2389-257",
         "stage_id": 0,
         "label": "W"
       },
       "protection": {
-        "card_id": "0000-001",
+        "card_id": "2389-256",
         "stage_id": 0,
         "label": "P"
       }
     },
     "site_b": {
-      "name": "Sitio B",
+      "name": "SPS",
       "working": {
-        "card_id": "0000-002",
+        "card_id": "2389-263",
         "stage_id": 0,
         "label": "W"
       },
       "protection": {
-        "card_id": "0000-003",
+        "card_id": "2389-253",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 5,
+    "title": "SPS - Santa Cruz",
+    "km": 1.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "SPS",
+      "working": {
+        "card_id": "2389-255",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-254",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Santa Cruz",
+      "working": {
+        "card_id": "2389-266",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-242",
         "stage_id": 0,
         "label": "P"
       }

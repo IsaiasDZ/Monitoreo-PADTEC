@@ -8,9 +8,8 @@ async function loadStatus() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    document.getElementById('mIter').textContent = `#${data.iteration}`;
     document.getElementById('mLast').textContent = data.last_poll || '—';
-    document.getElementById('mInterval').textContent = `intervalo: ${data.poll_interval}s`;
+    updateCountdown(data);
     document.getElementById('mMode').textContent = 'API REAL';
     document.getElementById('mToken').textContent = data.token_preview || '(sin token todavía)';
 
@@ -38,3 +37,15 @@ async function loadStatus() {
 
 loadStatus();
 setInterval(loadStatus, POLL_MS);
+setInterval(() => {
+  const el = document.getElementById('mInterval');
+  if (window.nextPollAt) {
+    el.textContent = `actualiza en ${Math.max(0, Math.ceil(window.nextPollAt - Date.now() / 1000))} s`;
+  }
+}, 1000);
+
+function updateCountdown(data) {
+  window.nextPollAt = data.next_poll_at || (Date.now() / 1000 + data.poll_interval);
+  const remaining = Math.max(0, Math.ceil(window.nextPollAt - Date.now() / 1000));
+  document.getElementById('mInterval').textContent = `actualiza en ${remaining} s`;
+}

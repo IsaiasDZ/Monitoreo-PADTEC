@@ -135,6 +135,9 @@ class LinksStore:
             if s["id"] == segment_id:
                 if site_key not in s:
                     return None
+                s[site_key]["name"] = data["name"].strip()
+                if data.get("title") is not None and data["title"].strip():
+                    s["title"] = data["title"].strip()
                 s[site_key]["working"] = data["working"]
                 s[site_key]["protection"] = data["protection"]
                 self._write(segments)
@@ -148,3 +151,34 @@ class LinksStore:
             return False
         self._write(filtered)
         return True
+
+    def update_site_stage(self, segment_id: int, site_key: str, stage_id: int) -> dict | None:
+        segments = self._read()
+        for segment in segments:
+            if segment["id"] == segment_id and site_key in segment:
+                segment[site_key]["working"]["stage_id"] = stage_id
+                segment[site_key]["protection"]["stage_id"] = stage_id
+                self._write(segments)
+                return segment
+        return None
+
+    def replace_all(self, segments: list) -> None:
+        """Valida la forma minima antes de reemplazar la configuracion."""
+        normalized = []
+        ids = set()
+        for segment in segments:
+            if not isinstance(segment, dict):
+                raise ValueError("cada tramo debe ser un objeto")
+            segment_id = int(segment["id"])
+            if segment_id in ids:
+                raise ValueError("los ids de tramo deben ser unicos")
+            for site_key in ("site_a", "site_b"):
+                site = segment[site_key]
+                if not site.get("name", "").strip():
+                    raise ValueError("cada sitio debe tener nombre")
+                for path_key in ("working", "protection"):
+                    if not site[path_key].get("card_id"):
+                        raise ValueError("cada endpoint debe tener card_id")
+            ids.add(segment_id)
+            normalized.append({**segment, "id": segment_id})
+        self._write(normalized)

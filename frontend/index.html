@@ -10,7 +10,7 @@
 <div class="page">
 
   <header class="head">
-    <div class="head__mark">PT</div>
+    <img class="head__logo" src="image.png" alt="PADTEC">
     <div class="head__id">
       <div class="head__title">Monitoreo PADTEC</div>
       <div class="head__sub">Ruta de fibra óptica · <b>Working / Protection</b> por EOA</div>
@@ -25,8 +25,15 @@
     </div>
 
     <div class="head__nav">
-      <span class="head__badge-mode" id="modeBadge" data-mode="live">API REAL</span>
       <a class="head__link" href="monitor.html">Pantalla externa →</a>
+      <details class="head__menu">
+        <summary>☰ Menú</summary>
+        <div class="head__menu-panel">
+          <button type="button" id="exportConfig">⇩ Exportar configuración</button>
+          <button type="button" id="importConfig">⇧ Importar configuración</button>
+          <input type="file" id="configFile" accept="application/json" hidden>
+        </div>
+      </details>
     </div>
   </header>
 
@@ -84,6 +91,15 @@
       <input type="hidden" id="fSegmentId">
       <input type="hidden" id="fSiteKey">
 
+      <div class="modal__field">
+        <label for="siteName">Nombre del sitio</label>
+        <input type="text" id="siteName" required>
+      </div>
+      <div class="modal__field">
+        <label for="segmentTitle">Línea / nombre del tramo</label>
+        <input type="text" id="segmentTitle" required>
+      </div>
+
       <div class="modal__path">
         <div class="modal__path-title" data-path="working">● WORKING</div>
         <div class="modal__row2">
@@ -118,6 +134,19 @@
         <button type="submit" class="btn btn--primary">Guardar</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="infoOverlay">
+  <div class="modal modal--wide">
+    <div class="modal__head">
+      <div>
+        <div class="modal__title" id="infoTitle">Información de tarjeta</div>
+        <div class="modal__sub" id="infoSub"></div>
+      </div>
+      <button class="modal__close" id="infoClose" aria-label="Cerrar información">✕</button>
+    </div>
+    <div class="info-summary" id="infoJson">Cargando…</div>
   </div>
 </div>
 
