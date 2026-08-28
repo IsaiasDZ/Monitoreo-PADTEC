@@ -1,0 +1,101 @@
+[
+  {
+    "id": 3,
+    "title": "San Pedro Sula --- Puerto Cortes",
+    "km": 17.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Puerto Barrios",
+      "working": {
+        "card_id": "2538-78",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2538-304",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Puerto Cortes",
+      "working": {
+        "card_id": "2538-81",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2538-82",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 4,
+    "title": "Puerto Cortes - SPS",
+    "km": 32.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "Puerto Cortes",
+      "working": {
+        "card_id": "2389-257",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-256",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "SPS",
+      "working": {
+        "card_id": "2389-263",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-253",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 5,
+    "title": "SPS - Santa Cruz",
+    "km": 1.0,
+    "warning_at": -18.0,
+    "critical_at": -23.0,
+    "site_a": {
+      "name": "SPS",
+      "working": {
+        "card_id": "2389-255",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-254",
+        "stage_id": 0,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "Santa Cruz",
+      "working": {
+        "card_id": "2389-266",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-242",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  }
+]

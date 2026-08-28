@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoreo PADTEC · Pantalla Externa</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="monitor-body">
+<div class="mon-page">
+
+  <header class="mon-head">
+    <div>
+      <div class="mon-head__title">Monitoreo PADTEC · Ruta Fibra Óptica</div>
+      <div class="mon-head__sub">Pantalla externa — equivalente a la consola del script de monitoreo</div>
+    </div>
+    <div class="mon-live"><span class="dot"></span>EN VIVO</div>
+  </header>
+
+  <div class="mon-stats">
+    <div class="mon-stat">
+      <div class="mon-stat__label">Último sondeo</div>
+      <div class="mon-stat__value" id="mLast">—</div>
+      <div class="mon-stat__hint" id="mInterval">actualiza en — s</div>
+    </div>
+    <div class="mon-stat">
+      <div class="mon-stat__label">Modo de datos</div>
+      <div class="mon-stat__value green" id="mMode">—</div>
+      <div class="mon-stat__hint">solo datos reales de la API PADTEC</div>
+    </div>
+    <div class="mon-stat">
+      <div class="mon-stat__label">Token activo</div>
+      <div class="mon-stat__value" id="mToken" style="font-size:15px;">—</div>
+      <div class="mon-stat__hint">se renueva automáticamente al vencer (403)</div>
+    </div>
+  </div>
+
+  <div class="mon-log">
+    <div class="mon-log__title">
+      <span>Historial de eventos</span>
+      <span id="mCount">0 eventos</span>
+    </div>
+    <div class="mon-log__list" id="mLog">
+      <div class="mon-empty">Esperando datos del monitor…</div>
+    </div>
+  </div>
+
+  <div class="mon-foot"><a href="index.html">← volver al dashboard</a></div>
+</div>
+
+<script src="js/monitor.js"></script>
+</body>
+</html>

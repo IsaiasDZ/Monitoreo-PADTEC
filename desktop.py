@@ -16,6 +16,7 @@ Empaquetar con:
 import socket
 import threading
 import time
+from pathlib import Path
 
 import uvicorn
 import webview
@@ -23,6 +24,25 @@ import webview
 from app import app as fastapi_app
 
 HOST = "127.0.0.1"
+
+
+class DesktopApi:
+    def save_config(self, config_json: str):
+        """Abre el diálogo nativo y guarda la configuración elegida."""
+        import webview
+
+        window = webview.windows[0]
+        result = window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            directory=str(Path.home() / "Downloads"),
+            save_filename="padtec-config.json",
+            file_types=("Configuración PADTEC (*.json)", "Todos los archivos (*.*)"),
+        )
+        if not result:
+            return None
+        target = Path(result[0] if isinstance(result, (list, tuple)) else result)
+        target.write_text(config_json, encoding="utf-8")
+        return str(target)
 
 
 def _free_port(preferred: int = 8000) -> int:
@@ -75,6 +95,7 @@ def main():
         width=1280,
         height=800,
         min_size=(1024, 700),
+        js_api=DesktopApi(),
     )
     webview.start()
 
