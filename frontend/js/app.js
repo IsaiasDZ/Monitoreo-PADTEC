@@ -94,11 +94,20 @@ function buildOpsLedGrid(ops) {
   return `<div class="report-led-grid">${rows}</div>`;
 }
 
-function setReportPrintWindow(html, win) {
-  if (!win) {
-    throw new Error('El navegador bloqueó la ventana emergente. Permite la apertura del PDF.');
-  }
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte PADTEC</title><style>
+function setReportPrintWindow(html) {
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('title', 'Reporte PADTEC');
+  iframe.style.position = 'fixed';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  iframe.style.pointerEvents = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte PADTEC</title><style>
     body{margin:0;background:#fff;font-family:ui-sans-serif,Segoe UI,Arial,sans-serif;}
     *{box-sizing:border-box;}
     .report-page{padding:28px 30px 20px;color:#14181D;}
@@ -140,12 +149,18 @@ function setReportPrintWindow(html, win) {
     .report-foot{margin-top:18px;border-top:1px solid #D7DCE2;padding-top:10px;font-size:10px;color:#5B6672;text-align:right;}
     @media print { body{margin:0;} @page{size:A4 portrait; margin:12mm;} }
   </style></head><body>${html}</body></html>`);
-  win.document.close();
-  win.focus();
-  setTimeout(() => { win.print(); }, 400);
+  doc.close();
+  setTimeout(() => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } finally {
+      setTimeout(() => iframe.remove(), 700);
+    }
+  }, 300);
 }
 
-async function exportRoutePdf(win = null) {
+async function exportRoutePdf() {
   setLoading(true, 'Generando reporte PDF…');
   try {
     const segments = currentSegments || [];
@@ -297,7 +312,7 @@ async function exportRoutePdf(win = null) {
       </div>
     `;
 
-    setReportPrintWindow(html, win);
+    setReportPrintWindow(html);
     setLoading(false);
   } catch (err) {
     setLoading(false);
@@ -714,14 +729,7 @@ document.getElementById('exportConfig').addEventListener('click', async () => {
 });
 
 document.getElementById('exportPdfReport').addEventListener('click', () => {
-  const win = window.open('', '_blank', 'width=1200,height=900');
-  if (!win) {
-    alert('El navegador bloqueó la ventana del PDF. Permite la apertura y vuelve a intentarlo.');
-    return;
-  }
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cargando PDF…</title></head><body style="font-family:Arial,sans-serif;padding:24px;color:#14181D;">Generando reporte…</body></html>');
-  win.document.close();
-  exportRoutePdf(win);
+  exportRoutePdf();
 });
 
 document.getElementById('importConfig').addEventListener('click', () => document.getElementById('configFile').click());
