@@ -140,6 +140,8 @@ class LinksStore:
                     s["title"] = data["title"].strip()
                 s[site_key]["working"] = data["working"]
                 s[site_key]["protection"] = data["protection"]
+                if data.get("ops") is not None:
+                    s[site_key]["ops"] = data["ops"]
                 self._write(segments)
                 return s
         return None
@@ -179,6 +181,9 @@ class LinksStore:
                 for path_key in ("working", "protection"):
                     if not site[path_key].get("card_id"):
                         raise ValueError("cada endpoint debe tener card_id")
+                ops = site.get("ops")
+                if ops is not None and ops.get("card_id") is not None and not str(ops.get("card_id", "")).strip():
+                    raise ValueError("el card_id de OPS no puede quedar vacio")
             ids.add(segment_id)
             normalized.append({**segment, "id": segment_id})
         self._write(normalized)

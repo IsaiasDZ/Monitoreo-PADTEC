@@ -46,6 +46,40 @@ def _worse(a, b):
     return a if _STATUS_ORDER.get(a, 1) >= _STATUS_ORDER.get(b, 1) else b
 
 
+def _ops_led_state(leds: dict | None, working_slot: int = 1, protection_slot: int = 1):
+    """Interpreta los LEDs de una OPS y devuelve la ruta activa y el modo."""
+    if not isinstance(leds, dict):
+        return {"active_path": "working", "mode": "unknown", "leds": {}}
+
+    working_slot = 1 if working_slot not in (1, 2) else int(working_slot)
+    protection_slot = 1 if protection_slot not in (1, 2) else int(protection_slot)
+
+    working_key = f"working{working_slot}"
+    protection_key = f"protection{protection_slot}"
+    working_value = str(leds.get(working_key) or "").upper()
+    protection_value = str(leds.get(protection_key) or "").upper()
+
+    full_state = {
+        "working1": str(leds.get("working1") or "").upper(),
+        "protection1": str(leds.get("protection1") or "").upper(),
+        "working2": str(leds.get("working2") or "").upper(),
+        "protection2": str(leds.get("protection2") or "").upper(),
+    }
+    state = {"working_slot": working_slot, "protection_slot": protection_slot, "working": working_value, "protection": protection_value, **full_state}
+
+    if working_value in {"GREEN", "ORANGE", "RED"} and protection_value == "DISABLE":
+        return {"active_path": "working", "mode": "automatic" if working_value == "GREEN" else "manual" if working_value == "ORANGE" else "alarm", "leds": state}
+    if protection_value in {"GREEN", "ORANGE", "RED"} and working_value == "DISABLE":
+        return {"active_path": "protection", "mode": "automatic" if protection_value == "GREEN" else "manual" if protection_value == "ORANGE" else "alarm", "leds": state}
+    if working_value in {"GREEN", "ORANGE", "RED"}:
+        return {"active_path": "working", "mode": "automatic" if working_value == "GREEN" else "manual" if working_value == "ORANGE" else "alarm", "leds": state}
+    if protection_value in {"GREEN", "ORANGE", "RED"}:
+        return {"active_path": "protection", "mode": "automatic" if protection_value == "GREEN" else "manual" if protection_value == "ORANGE" else "alarm", "leds": state}
+    if working_value == "DISABLE" and protection_value == "DISABLE":
+        return {"active_path": "working", "mode": "unknown", "leds": state}
+    return {"active_path": "working", "mode": "unknown", "leds": state}
+
+
 class MonitorService:
     def __init__(self):
         self.store = LinksStore()
@@ -112,7 +146,6 @@ class MonitorService:
         en vez de datos aleatorios. Nunca se generan valores simulados.
         """
         if not card_id or card_id.startswith("0000-"):
-            # Tramo/sitio recien creado sin ID de tarjeta real todavia.
             return self._empty_reading()
 
         try:
@@ -123,13 +156,17 @@ class MonitorService:
                 self._log(f"Token renovado automaticamente (detectado al consultar {card_id})", "token")
                 self.client.token_renewed_last_call = False
 
+            state = card.get("state", {}) if isinstance(card, dict) else {}
+            stage = stage_state if isinstance(stage_state, dict) else {}
             return {
-                "name": card.get("state", {}).get("name"),
-                "location": card.get("state", {}).get("location"),
-                "device_update": card.get("state", {}).get("last-update"),
-                "rx": stage_state.get("power-rx"),
-                "tx": stage_state.get("power-tx"),
+                "name": state.get("name"),
+                "location": state.get("location"),
+                "device_update": state.get("last-update"),
+                "rx": stage.get("power-rx"),
+                "tx": stage.get("power-tx"),
                 "source": "live",
+                "state": state,
+                "stage": stage,
             }
         except Exception as exc:
             self._log(f"API real no disponible para {card_id} ({exc}) -> sin datos", "warn")
@@ -144,6 +181,8 @@ class MonitorService:
             "rx": None,
             "tx": None,
             "source": "empty",
+            "state": {},
+            "stage": {},
         }
 
     def _track_change(self, endpoint_key, stage_id: int, path_label: str, seg_title: str, site_name: str, reading: dict):
@@ -195,10 +234,17 @@ class MonitorService:
             for side_key in ("site_a", "site_b")
             for path_key in ("working", "protection")
         ]
-        unique_keys = list(dict.fromkeys((k[3], k[4]) for k in fetch_keys))
+        ops_cards = [
+            (seg["id"], side_key, "ops", site.get("ops", {}).get("card_id"), site.get("ops", {}).get("stage_id", 0))
+            for seg in segments_in
+            for side_key in ("site_a", "site_b")
+            for site in (seg.get(side_key, {}),)
+            if site.get("ops", {}).get("card_id")
+        ]
+        unique_keys = list(dict.fromkeys((k[3], k[4]) for k in fetch_keys + ops_cards))
         results = list(self._executor.map(lambda k: self._fetch_endpoint(k[0], k[1]), unique_keys)) if unique_keys else []
         result_by_endpoint = dict(zip(unique_keys, results))
-        readings = {(k[0], k[1], k[2]): result_by_endpoint[(k[3], k[4])] for k in fetch_keys}
+        readings = {(k[0], k[1], k[2]): result_by_endpoint[(k[3], k[4])] for k in fetch_keys + ops_cards}
 
         segments_out = []
         counts = {"good": 0, "warning": 0, "critical": 0}
@@ -211,6 +257,17 @@ class MonitorService:
             for side_key in ("site_a", "site_b"):
                 site = seg[side_key]
                 w_ep, p_ep = site["working"], site["protection"]
+                ops_cfg = dict(site.get("ops") or {})
+                ops_card = ops_cfg.get("card_id")
+                ops_reading = readings.get((seg["id"], side_key, "ops"), {})
+                ops_state = _ops_led_state(
+                    ops_reading.get("state", {}).get("leds") if isinstance(ops_reading, dict) else None,
+                    working_slot=ops_cfg.get("working_slot", 1),
+                    protection_slot=ops_cfg.get("protection_slot", 1),
+                )
+                ops_name = ops_reading.get("state", {}).get("name") if isinstance(ops_reading, dict) else None
+                ops_map = ops_reading.get("state", {}).get("map") if isinstance(ops_reading, dict) else None
+                led_meta = {"active_path": ops_state["active_path"], "mode": ops_state["mode"], "leds": ops_state["leds"]}
 
                 w = readings[(seg["id"], side_key, "working")]
                 p = readings[(seg["id"], side_key, "protection")]
@@ -227,6 +284,19 @@ class MonitorService:
                     "status": site_status,
                     "working": {**w_ep, **w, "status": w_status},
                     "protection": {**p_ep, **p, "status": p_status},
+                    "ops": {
+                        **ops_cfg,
+                        "card_id": ops_card or ops_cfg.get("card_id") or "",
+                        "working": ops_cfg.get("working") or w_ep.get("card_id"),
+                        "protection": ops_cfg.get("protection") or p_ep.get("card_id"),
+                        "label": "OPS",
+                        "stage_id": ops_cfg.get("stage_id", max(w_ep.get("stage_id", 0), p_ep.get("stage_id", 0))),
+                        "working_slot": ops_cfg.get("working_slot", 1),
+                        "protection_slot": ops_cfg.get("protection_slot", 1),
+                        "map": ops_map or ops_cfg.get("map") or site.get("name"),
+                        "name": ops_name or ops_cfg.get("name") or f"OPS-{site['name']}",
+                        **led_meta,
+                    } if ops_card or ops_cfg else {},
                 }
                 counts[site_status] = counts.get(site_status, 0) + 1
 

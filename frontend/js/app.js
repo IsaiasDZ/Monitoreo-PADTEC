@@ -48,6 +48,263 @@ async function api(path, opts) {
   return res.json();
 }
 
+function formatReportNumber(value, unit = '') {
+  if (value === null || value === undefined || value === '') return 'No disponible';
+  const number = Number(value);
+  if (!Number.isFinite(number)) return `${escapeHtml(String(value))}${unit}`;
+  return `${number.toFixed(2)}${unit}`;
+}
+
+function reportLedState(value) {
+  const v = String(value || 'DISABLE').toUpperCase();
+  if (v === 'GREEN') return { text: 'GREEN', className: 'green' };
+  if (v === 'ORANGE') return { text: 'ORANGE', className: 'orange' };
+  if (v === 'RED') return { text: 'RED', className: 'red' };
+  return { text: 'DISABLE', className: 'disabled' };
+}
+
+function buildOpsLedGrid(ops) {
+  if (!ops || !ops.card_id) {
+    return '<div class="report-ops-empty">No hay OPS en este lugar.</div>';
+  }
+
+  const leds = ops.leds || {};
+  const slots = [
+    ['working1', 'WORKING 1'],
+    ['working2', 'WORKING 2'],
+    ['protection1', 'PROTECTION 1'],
+    ['protection2', 'PROTECTION 2'],
+  ];
+
+  const rows = slots.map(([key, label]) => {
+    const value = reportLedState(leds[key]);
+    return `
+      <div class="report-led">
+        <span class="report-led__label">${label}</span>
+        <span class="report-led__value"><i class="report-led__dot ${value.className}"></i>${value.text}</span>
+      </div>
+    `;
+  }).join('');
+
+  const hasAnyLed = slots.some(([key]) => String(leds[key] || '').trim() !== '');
+  if (!hasAnyLed) {
+    return `<div class="report-ops-empty">No hay OPS en este lugar.</div><div class="report-led-grid">${rows}</div>`;
+  }
+
+  return `<div class="report-led-grid">${rows}</div>`;
+}
+
+function setReportPrintWindow(html, win) {
+  if (!win) {
+    throw new Error('El navegador bloqueó la ventana emergente. Permite la apertura del PDF.');
+  }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte PADTEC</title><style>
+    body{margin:0;background:#fff;font-family:ui-sans-serif,Segoe UI,Arial,sans-serif;}
+    *{box-sizing:border-box;}
+    .report-page{padding:28px 30px 20px;color:#14181D;}
+    .report-header{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #f2b980;padding-bottom:12px;margin-bottom:16px;}
+    .report-header__title{font-size:24px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;}
+    .report-header__meta{font-size:11px;color:#5B6672;text-align:right;}
+    .report-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:18px;}
+    .report-chip{background:#F5F6F8;border:1px solid #D7DCE2;border-radius:8px;padding:8px 10px;}
+    .report-chip__label{display:block;font-size:10px;letter-spacing:.06em;color:#99A3AD;text-transform:uppercase;}
+    .report-chip__value{font-size:14px;font-weight:700;}
+    .report-segment{border:1px solid #D7DCE2;border-radius:8px;overflow:hidden;margin-bottom:16px;}
+    .report-segment__head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:#fff7ef;border-bottom:1px solid #D7DCE2;}
+    .report-segment__title{font-size:15px;font-weight:800;}
+    .report-segment__meta{font-size:11px;color:#5B6672;}
+    .report-site-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;}
+    .report-site{border:1px solid #E4E8EC;border-radius:6px;background:#fff;padding:10px 12px;}
+    .report-site__head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
+    .report-site__name{font-size:15px;font-weight:800;}
+    .report-side-tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid #D7DCE2;}
+    .report-side-tag.working{background:#E4F4F2;border-color:#0e7c7455;color:#0E7C74;}
+    .report-side-tag.protection{background:#FFF1E4;border-color:#e8720c55;color:#E8720C;}
+    .report-card{border:1px solid #E4E8EC;background:#F5F6F8;border-radius:6px;padding:8px 10px;margin-bottom:8px;}
+    .report-card__title{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;margin-bottom:6px;}
+    .report-card__title span:last-child{color:#99A3AD;font-weight:700;}
+    .report-card__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:11px;}
+    .report-card__grid div{display:flex;flex-direction:column;gap:2px;}
+    .report-card__grid span{color:#99A3AD;letter-spacing:.03em;text-transform:uppercase;font-size:9px;}
+    .report-card__grid strong{color:#14181D;font-size:11px;}
+    .report-led-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;}
+    .report-led{border:1px solid #D7DCE2;border-radius:4px;padding:5px 6px;background:#fff;font-size:10px;}
+    .report-led__label{display:block;color:#99A3AD;margin-bottom:3px;}
+    .report-led__value{display:inline-flex;align-items:center;gap:6px;font-weight:800;}
+    .report-led__dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#9AA3AD;}
+    .report-led__dot.green{background:#1B8A54;}
+    .report-led__dot.orange{background:#E8720C;}
+    .report-led__dot.red{background:#D92B2B;}
+    .report-led__dot.disabled{background:#9AA3AD;}
+    .report-ops-empty{margin-top:8px;font-size:11px;color:#5B6672;font-weight:700;}
+    .report-foot{margin-top:18px;border-top:1px solid #D7DCE2;padding-top:10px;font-size:10px;color:#5B6672;text-align:right;}
+    @media print { body{margin:0;} @page{size:A4 portrait; margin:12mm;} }
+  </style></head><body>${html}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 400);
+}
+
+async function exportRoutePdf(win = null) {
+  setLoading(true, 'Generando reporte PDF…');
+  try {
+    const segments = currentSegments || [];
+    if (!segments.length) {
+      throw new Error('No hay tramos para exportar.');
+    }
+
+    const uniqueCards = [];
+    const seen = new Set();
+    for (const seg of segments) {
+      for (const sideKey of ['site_a', 'site_b']) {
+        const site = seg[sideKey] || {};
+        const paths = [
+          ['working', site.working],
+          ['protection', site.protection],
+        ];
+        for (const [pathKey, entry] of paths) {
+          if (!entry?.card_id) continue;
+          const key = `${entry.card_id}|${entry.stage_id ?? 0}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueCards.push({ cardId: entry.card_id, stageId: entry.stage_id ?? 0, path: pathKey, segmentId: seg.id, siteName: site.name, sideKey });
+          }
+        }
+        const ops = site.ops || {};
+        if (ops.card_id) {
+          const key = `${ops.card_id}|${ops.stage_id ?? 0}|ops`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueCards.push({ cardId: ops.card_id, stageId: ops.stage_id ?? 0, path: 'OPS', segmentId: seg.id, siteName: site.name, sideKey });
+          }
+        }
+      }
+    }
+
+    const cardDetails = await Promise.all(uniqueCards.map(async (item) => {
+      const detail = await api(`/cards/${encodeURIComponent(item.cardId)}?stage_id=${item.stageId}`);
+      return { ...item, detail };
+    }));
+
+    const detailMap = new Map(cardDetails.map(item => [`${item.cardId}|${item.stageId}|${item.path}`, item.detail]));
+    const reportDate = new Date().toLocaleString('es-HN', { timeZone: 'America/Tegucigalpa' });
+
+    const html = `
+      <div class="report-page">
+        <header class="report-header">
+          <div>
+            <div class="report-header__title">Monitoreo PADTEC</div>
+            <div class="report-header__meta">Reporte generado · ${escapeHtml(reportDate)}</div>
+          </div>
+          <div class="report-header__meta">
+            <div>Ruta de fibra óptica</div>
+            <div>Working / Protection + OPS</div>
+          </div>
+        </header>
+
+        <section class="report-summary">
+          <div class="report-chip"><span class="report-chip__label">Tramos</span><span class="report-chip__value">${segments.length}</span></div>
+          <div class="report-chip"><span class="report-chip__label">Sitios</span><span class="report-chip__value">${segments.length * 2}</span></div>
+          <div class="report-chip"><span class="report-chip__label">Estado general</span><span class="report-chip__value">${(segments.some(s => s.status === 'critical') ? 'CRÍTICO' : segments.some(s => s.status === 'warning') ? 'ADVERTENCIA' : 'NORMAL')}</span></div>
+          <div class="report-chip"><span class="report-chip__label">Última actualización</span><span class="report-chip__value">${escapeHtml((currentSegments[0]?.site_a?.working?.device_update) || '—')}</span></div>
+        </section>
+
+        ${segments.map((seg) => {
+          const renderSide = (sideKey, parentLabel) => {
+            const site = seg[sideKey] || {};
+            const working = site.working || {};
+            const protection = site.protection || {};
+            const ops = site.ops || {};
+            const workingDetail = detailMap.get(`${working.card_id}|${working.stage_id ?? 0}|working`);
+            const protectionDetail = detailMap.get(`${protection.card_id}|${protection.stage_id ?? 0}|protection`);
+            const opsDetail = detailMap.get(`${ops.card_id}|${ops.stage_id ?? 0}|OPS`);
+            const workingState = workingDetail?.card?.state || {};
+            const protectionState = protectionDetail?.card?.state || {};
+            const opsState = opsDetail?.card?.state || {};
+            const opsLeds = ops?.leds || (opsDetail?.card?.state?.leds || {});
+            const opsActive = normalizeOpsLedState({ ...ops, leds: opsLeds });
+
+            const renderPathCard = (pathLabel, card, cardName, cardDetail, pathType) => {
+              const state = cardDetail?.card?.state || {};
+              const stage = cardDetail?.stage || {};
+              const cardStatus = card?.status === 'critical' ? 'CRÍTICO' : card?.status === 'warning' ? 'ADVERTENCIA' : 'NORMAL';
+              const isWorking = pathType === 'working';
+              return `
+                <div class="report-card">
+                  <div class="report-card__title">
+                    <span>${isWorking ? 'WORKING' : 'PROTECTION'}</span>
+                    <span>${escapeHtml(cardStatus)}</span>
+                  </div>
+                  <div class="report-card__grid">
+                    <div><span>Card ID</span><strong>${escapeHtml(card?.card_id || '—')}</strong></div>
+                    <div><span>Stage</span><strong>${escapeHtml(String(card?.stage_id ?? 0))}</strong></div>
+                    <div><span>RX</span><strong>${formatReportNumber(card?.rx, ' dBm')}</strong></div>
+                    <div><span>TX</span><strong>${formatReportNumber(card?.tx, ' dBm')}</strong></div>
+                    <div><span>Temperatura</span><strong>${formatReportNumber(stage.temperature, ' °C')}</strong></div>
+                    <div><span>Ubicación</span><strong>${escapeHtml(state.location || 'No disponible')}</strong></div>
+                    <div><span>Mapa</span><strong>${escapeHtml(state.map || state.location || 'No disponible')}</strong></div>
+                    <div><span>Modelo</span><strong>${escapeHtml(state.model || 'No disponible')}</strong></div>
+                    <div><span>Nombre</span><strong>${escapeHtml(state.name || 'No disponible')}</strong></div>
+                    <div><span>Firmware</span><strong>${escapeHtml(state['firmware-version'] || 'No disponible')}</strong></div>
+                    <div><span>Última act.</span><strong>${escapeHtml(state['last-update'] || card?.device_update || 'No disponible')}</strong></div>
+                    <div><span>Ganancia</span><strong>${formatReportNumber(stage.gain, ' dB')}</strong></div>
+                  </div>
+                </div>
+              `;
+            };
+
+            const opsText = ops.card_id ? `${opsActive.active_path === 'working' ? 'RUTA OPERANDO POR: WORKING' : 'RUTA OPERANDO POR: PROTECTION'} · ${String(opsActive.mode || 'unknown').toUpperCase()}` : 'NO HAY OPS EN ESTE LUGAR';
+
+            return `
+              <div class="report-site">
+                <div class="report-site__head">
+                  <div class="report-site__name">${escapeHtml(site.name || 'Sitio')}</div>
+                  <span class="report-side-tag ${parentLabel === 'site_a' ? 'working' : 'protection'}">${parentLabel === 'site_a' ? 'Sitio A' : 'Sitio B'}</span>
+                </div>
+                ${renderPathCard('WORKING', working, 'Working', workingDetail, 'working')}
+                ${renderPathCard('PROTECTION', protection, 'Protection', protectionDetail, 'protection')}
+                <div class="report-card">
+                  <div class="report-card__title"><span>OPS</span><span>${escapeHtml(ops.card_id ? 'CONFIGURADA' : 'SIN OPS')}</span></div>
+                  <div class="report-card__grid">
+                    <div><span>Card ID</span><strong>${escapeHtml(ops.card_id || '—')}</strong></div>
+                    <div><span>Stage</span><strong>${escapeHtml(String(ops.stage_id ?? 0))}</strong></div>
+                    <div><span>Working LED</span><strong>${escapeHtml(String(ops.working_slot ?? 1))}</strong></div>
+                    <div><span>Protection LED</span><strong>${escapeHtml(String(ops.protection_slot ?? 1))}</strong></div>
+                    <div><span>Ruta</span><strong>${escapeHtml(opsText)}</strong></div>
+                    <div><span>Mapa</span><strong>${escapeHtml((opsState.map || ops.map || site.name || 'No disponible'))}</strong></div>
+                  </div>
+                  ${buildOpsLedGrid({ ...ops, leds: opsLeds, card_id: ops.card_id })}
+                </div>
+              </div>
+            `;
+          };
+
+          return `
+            <section class="report-segment">
+              <div class="report-segment__head">
+                <div class="report-segment__title">Tramo ${escapeHtml(String(seg.id))} · ${escapeHtml(seg.title || 'Sin nombre')}</div>
+                <div class="report-segment__meta">Km: ${escapeHtml(String(seg.km || 0))} · Estado: ${escapeHtml(String(seg.status || 'unknown').toUpperCase())}</div>
+              </div>
+              <div class="report-site-grid">
+                ${renderSide('site_a', 'site_a')}
+                ${renderSide('site_b', 'site_b')}
+              </div>
+            </section>
+          `;
+        }).join('')}
+
+        <div class="report-foot">Reporte PADTEC · ${escapeHtml(reportDate)}</div>
+      </div>
+    `;
+
+    setReportPrintWindow(html, win);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    alert(`Error generando PDF: ${err.message}`);
+  }
+}
+
 // ---------------------------------------------------------------
 // Render: trail (ruta lineal arriba)
 // ---------------------------------------------------------------
@@ -71,10 +328,10 @@ function siteTable(site) {
   return `
     <div class="site__table">
       <span class="col-h"></span><span class="col-h">RX</span><span class="col-h">TX</span>
-      <span class="path-tag" data-path="working">W<button class="path-info" data-card="${escapeHtml(w.card_id)}" data-stage="${w.stage_id ?? 0}" data-name="${escapeHtml(w.name || 'Working')}" aria-label="Información de ${escapeHtml(w.name || 'Working')}" title="Información detallada">ⓘ</button></span>
+      <span class="path-tag" data-path="working"><button class="path-info" data-card="${escapeHtml(w.card_id)}" data-stage="${w.stage_id ?? 0}" data-name="${escapeHtml(w.name || 'Working')}" aria-label="Información de ${escapeHtml(w.name || 'Working')}" title="Información detallada">ⓘ</button></span>
       <span class="val rx" data-status="${statusLabel(w.status)}">${value(w.rx)}</span>
       <span class="val tx">${value(w.tx)}</span>
-      <span class="path-tag" data-path="protection">P<button class="path-info" data-card="${escapeHtml(p.card_id)}" data-stage="${p.stage_id ?? 0}" data-name="${escapeHtml(p.name || 'Protection')}" aria-label="Información de ${escapeHtml(p.name || 'Protection')}" title="Información detallada">ⓘ</button></span>
+      <span class="path-tag" data-path="protection"><button class="path-info" data-card="${escapeHtml(p.card_id)}" data-stage="${p.stage_id ?? 0}" data-name="${escapeHtml(p.name || 'Protection')}" aria-label="Información de ${escapeHtml(p.name || 'Protection')}" title="Información detallada">ⓘ</button></span>
       <span class="val rx" data-status="${statusLabel(p.status)}">${value(p.rx)}</span>
       <span class="val tx">${value(p.tx)}</span>
     </div>`;
@@ -106,17 +363,72 @@ function formatHondurasDate(value) {
   return `${parts[0]}/${parts[1]}/${parts[2]} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}`;
 }
 
+function normalizeOpsLedState(ops) {
+  const leds = ops?.leds || {};
+  const workingSlot = Number(ops?.working_slot || 1);
+  const protectionSlot = Number(ops?.protection_slot || 1);
+  const working1 = String(leds.working1 || '').toUpperCase();
+  const protection1 = String(leds.protection1 || '').toUpperCase();
+  const working2 = String(leds.working2 || '').toUpperCase();
+  const protection2 = String(leds.protection2 || '').toUpperCase();
+  const workingValue = String(leds[`working${workingSlot}`] || (workingSlot === 1 ? working1 : working2) || 'DISABLE').toUpperCase();
+  const protectionValue = String(leds[`protection${protectionSlot}`] || (protectionSlot === 1 ? protection1 : protection2) || 'DISABLE').toUpperCase();
+
+  if (workingValue === 'GREEN' || workingValue === 'ORANGE' || workingValue === 'RED') {
+    return { activePath: 'working', mode: workingValue === 'GREEN' ? 'automatic' : workingValue === 'ORANGE' ? 'manual' : 'alarm', working1, working2, protection1, protection2, workingValue, protectionValue };
+  }
+  if (protectionValue === 'GREEN' || protectionValue === 'ORANGE' || protectionValue === 'RED') {
+    return { activePath: 'protection', mode: protectionValue === 'GREEN' ? 'automatic' : protectionValue === 'ORANGE' ? 'manual' : 'alarm', working1, working2, protection1, protection2, workingValue, protectionValue };
+  }
+  if (workingValue === 'DISABLE' && protectionValue === 'DISABLE') {
+    return { activePath: 'working', mode: 'unknown', working1, working2, protection1, protection2, workingValue, protectionValue };
+  }
+  if (workingValue === 'DISABLE') return { activePath: 'protection', mode: 'unknown', working1, working2, protection1, protection2, workingValue, protectionValue };
+  if (protectionValue === 'DISABLE') return { activePath: 'working', mode: 'unknown', working1, working2, protection1, protection2, workingValue, protectionValue };
+  return { activePath: 'working', mode: 'unknown', working1, working2, protection1, protection2, workingValue, protectionValue };
+}
+
+function siteOpsBadge(site) {
+  const ops = site?.ops || {};
+  const ledState = normalizeOpsLedState(ops);
+  const activePath = ledState.activePath || 'working';
+  const routeText = activePath === 'working' ? 'ruta operando por: WORKING' : 'ruta operando por: PROTECTION';
+  const modeText = ledState.mode === 'automatic' ? 'automático' : ledState.mode === 'manual' ? 'manual' : ledState.mode === 'alarm' ? 'alarma RX' : 'desconocido';
+  const makeLed = (kind) => {
+    const value = kind === 'working' ? ledState.workingValue : ledState.protectionValue;
+    const state = String(value || 'DISABLE').toUpperCase();
+    const active = activePath === kind;
+    const css = state === 'GREEN' ? 'is-green' : state === 'ORANGE' ? 'is-orange' : state === 'RED' ? 'is-red' : 'is-disabled';
+    const tooltip = `${routeText} · ${modeText}`;
+    return `<button type="button" class="site__ops-led site__ops-led--${kind} ${css} ${active ? 'is-active' : ''}" title="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip)}"></button>`;
+  };
+  const info = ops?.card_id ? `<button type="button" class="site__ops-info" data-card="${escapeHtml(ops.card_id)}" data-stage="${Number(ops.stage_id || 0)}" data-name="${escapeHtml(ops.name || ops.map || site.name || 'OPS')}" title="${escapeHtml(ops.map || ops.name || site.name || 'OPS')}">ⓘ</button>` : '';
+
+  return `
+    <div class="site__ops" title="${escapeHtml(routeText)} · ${escapeHtml(ops.name || ops.map || site.name || 'OPS')}">
+      <div class="site__ops-leds">
+        ${makeLed('working')}
+        ${makeLed('protection')}
+      </div>
+      ${info}
+    </div>
+  `;
+}
+
 function siteBlock(seg, side, site) {
   const stage = site.working.stage_id ?? site.protection.stage_id ?? 0;
   const stageLoading = site.stageLoading === true;
   return `
     <div class="site" data-side="${side === 'site_a' ? 'a' : 'b'}" data-status="${statusLabel(site.status)}">
       <div class="site__head">
-        <span class="site__city">${escapeHtml(site.name)}</span>
+        <div class="site__title-wrap">
+          <span class="site__city">${escapeHtml(site.name)}</span>
+          ${siteOpsBadge(site)}
+        </div>
         <div class="site__actions">
           <div class="site__labels">
-            <span class="site__tag site__tag--working" title="${escapeHtml(site.working.name || 'Sin nombre')}" >W · ${escapeHtml(site.working.name || 'Sin nombre')}</span>
-            <span class="site__tag site__tag--protection" title="${escapeHtml(site.protection.name || 'Sin nombre')}" >P · ${escapeHtml(site.protection.name || 'Sin nombre')}</span>
+            <span class="site__tag site__tag--working" title="${escapeHtml(site.working.name || 'Sin nombre')}">${escapeHtml(site.working.name || '')}</span>
+            <span class="site__tag site__tag--protection" title="${escapeHtml(site.protection.name || 'Sin nombre')}">${escapeHtml(site.protection.name || '')}</span>
           </div>
           <button class="stage-switch ${stage === 1 ? 'is-stage-1' : ''} ${stageLoading ? 'is-loading' : ''}" data-seg="${seg.id}" data-side="${side}" data-stage="${stage}" role="switch" aria-checked="${stage === 1}" aria-label="${stageLoading ? 'Cambiando stage' : 'Cambiar entre stage 0 y stage 1'}" title="Cambiar stage" ${stageLoading ? 'disabled' : ''}>${stageLoading ? '<span class="stage-spinner" aria-hidden="true"></span><span>Cargando</span>' : `⇄<span>Stage ${stage}</span>`}</button>
           <button class="site__edit" data-seg="${seg.id}" data-side="${side}" aria-label="Editar configuración" title="Editar configuración">✎</button>
@@ -160,6 +472,9 @@ function renderGrid(segments) {
   });
   grid.querySelectorAll('.path-info').forEach(btn => {
     btn.addEventListener('click', () => openInfo(btn.dataset.card, btn.dataset.stage, '', '', btn.dataset.name));
+  });
+  grid.querySelectorAll('.site__ops-info').forEach(btn => {
+    btn.addEventListener('click', () => openInfo(btn.dataset.card, btn.dataset.stage, '', '', btn.dataset.name || 'OPS'));
   });
 }
 
@@ -269,9 +584,13 @@ function openModal(segmentId, siteKey) {
   document.getElementById('wStageId').value = site.working.stage_id ?? 0;
   document.getElementById('pCardId').value = site.protection.card_id;
   document.getElementById('pStageId').value = site.protection.stage_id ?? 0;
+  document.getElementById('opsCardId').value = site.ops?.card_id || '2335-000';
+  document.getElementById('opsWorkingSlot').value = Number(site.ops?.working_slot || 1);
+  document.getElementById('opsProtectionSlot').value = Number(site.ops?.protection_slot || 1);
+  document.getElementById('opsStageId').value = site.ops?.stage_id ?? 0;
 
-  modalTitle.textContent = `Editar EOA — ${site.name}`;
-  modalSub.textContent = `${seg.title} · endpoints Working / Protection`;
+  modalTitle.textContent = `Editar tarjeta de sitio — ${site.name}`;
+  modalSub.textContent = `${seg.title} · Working / Protection / OPS`;
   modalStatus.textContent = '';
   modalStatus.dataset.state = '';
   overlay.classList.add('open');
@@ -300,6 +619,13 @@ modalForm.addEventListener('submit', async (e) => {
       card_id: document.getElementById('pCardId').value.trim(),
       stage_id: Number(document.getElementById('pStageId').value),
       label: 'P',
+    },
+    ops: {
+      card_id: document.getElementById('opsCardId').value.trim(),
+      stage_id: Number(document.getElementById('opsStageId').value),
+      working_slot: Number(document.getElementById('opsWorkingSlot').value),
+      protection_slot: Number(document.getElementById('opsProtectionSlot').value),
+      label: 'OPS',
     },
   };
 
@@ -385,6 +711,17 @@ document.getElementById('exportConfig').addEventListener('click', async () => {
     setLoading(false);
     alert(`Error exportando configuración: ${err.message}`);
   }
+});
+
+document.getElementById('exportPdfReport').addEventListener('click', () => {
+  const win = window.open('', '_blank', 'width=1200,height=900');
+  if (!win) {
+    alert('El navegador bloqueó la ventana del PDF. Permite la apertura y vuelve a intentarlo.');
+    return;
+  }
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cargando PDF…</title></head><body style="font-family:Arial,sans-serif;padding:24px;color:#14181D;">Generando reporte…</body></html>');
+  win.document.close();
+  exportRoutePdf(win);
 });
 
 document.getElementById('importConfig').addEventListener('click', () => document.getElementById('configFile').click());

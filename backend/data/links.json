@@ -1,8 +1,8 @@
 [
   {
     "id": 3,
-    "title": "San Pedro Sula --- Puerto Cortes",
-    "km": 17.0,
+    "title": "PUERTO BARRIOS - PUERTO CORTES",
+    "km": 1.0,
     "warning_at": -18.0,
     "critical_at": -23.0,
     "site_a": {
@@ -16,6 +16,13 @@
         "card_id": "2538-304",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-435",
+        "stage_id": 0,
+        "working_slot": 1,
+        "protection_slot": 1,
+        "label": "OPS"
       }
     },
     "site_b": {
@@ -29,13 +36,20 @@
         "card_id": "2538-82",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-439",
+        "stage_id": 0,
+        "working_slot": 1,
+        "protection_slot": 1,
+        "label": "OPS"
       }
     }
   },
   {
     "id": 4,
-    "title": "Puerto Cortes - SPS",
-    "km": 32.0,
+    "title": "PUERTO CORTES - SPS",
+    "km": 1.0,
     "warning_at": -18.0,
     "critical_at": -23.0,
     "site_a": {
@@ -49,6 +63,13 @@
         "card_id": "2389-256",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-438",
+        "stage_id": 0,
+        "working_slot": 1,
+        "protection_slot": 1,
+        "label": "OPS"
       }
     },
     "site_b": {
@@ -62,15 +83,22 @@
         "card_id": "2389-253",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-453",
+        "stage_id": 0,
+        "working_slot": 1,
+        "protection_slot": 1,
+        "label": "OPS"
       }
     }
   },
   {
     "id": 5,
     "title": "SPS - Santa Cruz",
-    "km": 1.0,
-    "warning_at": -18.0,
-    "critical_at": -23.0,
+    "km": 1,
+    "warning_at": -18,
+    "critical_at": -23,
     "site_a": {
       "name": "SPS",
       "working": {
@@ -82,6 +110,11 @@
         "card_id": "2389-254",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-440",
+        "stage_id": 0,
+        "label": "OPS"
       }
     },
     "site_b": {
@@ -95,6 +128,132 @@
         "card_id": "2389-242",
         "stage_id": 0,
         "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-503",
+        "stage_id": 0,
+        "label": "OPS"
+      }
+    }
+  },
+  {
+    "id": 6,
+    "title": "SANTA CRUZ - SIGUATEPEQUE",
+    "km": 1,
+    "warning_at": -18,
+    "critical_at": -23,
+    "site_a": {
+      "name": "SANTA CRUZ",
+      "working": {
+        "card_id": "2538-303",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2538-307",
+        "stage_id": 0,
+        "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-504",
+        "stage_id": 0,
+        "label": "OPS"
+      }
+    },
+    "site_b": {
+      "name": "SIGUATEPEQUE",
+      "working": {
+        "card_id": "2538-1933",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2538-302",
+        "stage_id": 0,
+        "label": "P"
+      },
+      "ops": {
+        "card_id": "2336-2780",
+        "stage_id": 0,
+        "label": "OPS"
+      }
+    }
+  },
+  {
+    "id": 7,
+    "title": "SIGUATEPEQUE - COMAYAGUA",
+    "km": 1,
+    "warning_at": -18,
+    "critical_at": -23,
+    "site_a": {
+      "name": "SIGUATEPEQUE",
+      "working": {
+        "card_id": "2389-729",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-733",
+        "stage_id": 0,
+        "label": "P"
+      },
+      "ops": {
+        "card_id": "2336-2780",
+        "stage_id": 0,
+        "working_slot": 2,
+        "protection_slot": 2,
+        "label": "OPS"
+      }
+    },
+    "site_b": {
+      "name": "COMAYAGUA",
+      "working": {
+        "card_id": "2389-728",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-640",
+        "stage_id": 0,
+        "label": "P"
+      }
+    }
+  },
+  {
+    "id": 8,
+    "title": "COMAYAGUA - TEGUCIGALPA",
+    "km": 1,
+    "warning_at": -18,
+    "critical_at": -23,
+    "site_a": {
+      "name": "COMAYAGUA",
+      "working": {
+        "card_id": "2389-261",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-261",
+        "stage_id": 1,
+        "label": "P"
+      }
+    },
+    "site_b": {
+      "name": "TEGUCIGALPA",
+      "working": {
+        "card_id": "2389-260",
+        "stage_id": 0,
+        "label": "W"
+      },
+      "protection": {
+        "card_id": "2389-258",
+        "stage_id": 0,
+        "label": "P"
+      },
+      "ops": {
+        "card_id": "2335-443",
+        "stage_id": 0,
+        "label": "OPS"
       }
     }
   }

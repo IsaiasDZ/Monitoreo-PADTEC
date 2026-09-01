@@ -31,6 +31,7 @@
         <div class="head__menu-panel">
           <button type="button" id="exportConfig">⇩ Exportar configuración</button>
           <button type="button" id="importConfig">⇧ Importar configuración</button>
+          <button type="button" id="exportPdfReport">📄 Exportar PDF</button>
           <div class="reading-size-control" aria-label="Tamaño de RX y TX">
             <span>Aa</span>
             <button type="button" id="decreaseReadingSize" aria-label="Reducir tamaño de RX y TX" title="Reducir RX/TX">−</button>
@@ -137,6 +138,36 @@
           <div class="modal__field">
             <label for="pStageId">Stage</label>
             <input type="number" id="pStageId" value="0" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__path">
+        <div class="modal__path-title" data-path="ops">● OPS</div>
+        <div class="modal__row2">
+          <div class="modal__field">
+            <label for="opsCardId">Card ID</label>
+            <input type="text" id="opsCardId" placeholder="2335-438">
+          </div>
+          <div class="modal__field">
+            <label for="opsStageId">Stage</label>
+            <input type="number" id="opsStageId" value="0">
+          </div>
+        </div>
+        <div class="modal__row2">
+          <div class="modal__field">
+            <label for="opsWorkingSlot">Working LED</label>
+            <select id="opsWorkingSlot">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </div>
+          <div class="modal__field">
+            <label for="opsProtectionSlot">Protection LED</label>
+            <select id="opsProtectionSlot">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
           </div>
         </div>
       </div>

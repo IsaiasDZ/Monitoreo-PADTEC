@@ -17,11 +17,24 @@ class EOAEndpoint(BaseModel):
     label: Literal["W", "P"] = "W"
 
 
+class OPSEndpoint(BaseModel):
+    card_id: str = Field(..., min_length=1, description="ID del card OPS en PADTEC, ej. 2335-438")
+    stage_id: int = 0
+    working_slot: int = Field(1, ge=1, le=2)
+    protection_slot: int = Field(1, ge=1, le=2)
+    label: Literal["OPS"] = "OPS"
+
+
 class SiteEdit(BaseModel):
     name: str
     title: str | None = None
     working: EOAEndpoint
     protection: EOAEndpoint
+    ops: OPSEndpoint | None = None
+
+    @property
+    def ops_card_id(self):
+        return self.ops.card_id if self.ops else None
 
 
 class StageEdit(BaseModel):
@@ -32,6 +45,11 @@ class SiteConfig(BaseModel):
     name: str
     working: EOAEndpoint
     protection: EOAEndpoint
+    ops: OPSEndpoint | None = None
+
+    @property
+    def ops_card_id(self):
+        return self.ops.card_id if self.ops else None
 
 
 class SegmentConfig(BaseModel):
